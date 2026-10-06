@@ -1,0 +1,16 @@
+a = 24446.301604 km
+h = 0.6276769176
+k = -0.3623940235
+p = 0.0000000000
+q = -0.0000000000
+lambda = 209.998682 deg
+L = 276.166106 deg
+e = 0.7247811677
+r = 34431.645438 km
+vr = 1.716495 km/s
+energy = -8.152562429 km^2/s^2
+H vector = [    0.           0.       68011.335775] km^2/s
+N vector = [0. 0. 0.] km^2/s
+e vector = [-0.3623940235  0.6276769176  0.          ]
+position reconstruction error = 2.474e-11 km
+velocity reconstruction error = 2.921e-15 km/s

@@ -1,0 +1,9 @@
+a = 31161.574916 km
+h = 0.4633576943
+k = -0.0472322793
+p = 0.5828354153
+q = 0.1699936628
+lambda = 93.753498 deg
+L = 89.420678 deg
+position reconstruction error = 9.679e-12 km
+velocity reconstruction error = 2.747e-15 km/s

@@ -1,0 +1,5 @@
+r cross e = [-1820. -1880.  2780.] km
+cross magnitude = 3817.748027 km
+cos i = 0.7281779678
+i = 43.266137 deg
+compatible radial velocity = -2.321473 km/s
