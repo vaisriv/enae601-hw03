@@ -33,16 +33,28 @@
 
 // assignment info
 #show: homework.with(
-    title: "HW00",
+    title: "HW03",
     author: "Vai Srivastava",
     collaborators: [],
-    course-id: "Course: Description",
-    instructor: "Instructor",
+    course-id: "ENAE 601: Astrodynamics",
+    instructor: "Dr. Healy",
     semester: "Fall 2026",
-    due-time: "January 01st. at 23:59",
+    due-time: datetime(
+        // due date
+        year: 2026,
+        month: 10,
+        day: 07,
+
+        // due time
+        hour: 23,
+        minute: 59,
+        second: 00,
+    ).display(
+        "[month repr:long] [day padding:zero], [year] at [hour repr:24]:[minute padding:zero]:[second padding:zero]",
+    ),
 
     // (defaults to A4)
-    paper-size: "us-letter", 
+    paper-size: "us-letter",
 )
 
 // document settings
@@ -58,36 +70,136 @@
 // Problems and Solutions //
 ////////////////////////////
 
-#prob(title: [Parts #emph[(\# pts)]])[
-    1. Instructions
+// NOTE: Where classical orbital elements are requested, use standard orbital elements with semimajor axis $a$---not angular momentum magnitude $h$---as per #link("HW02")[../../hw02/reports/main.typ]
+
+#prob(title: "Curtis 4.3")[
+    For a geocentric satellite whose inertial position and velocity vectors in a geocentric equatorial frame are:
+    $
+        vbu(r) = & 2500 vuu(I) & +16000 vuu(J) & +4000 vuu(K) &   space (unit("km")) \
+        vbu(v) = & -3 vuu(I)   &       -vuu(J) & +5 vuu(K)    & space (unit("km/s"))
+    $
+
+    + Find the classical orbital elements $e$, $a$, $i$, $Omega$, $omega$, $theta$.
     <hwk:p01a>
 
-    2. Instructions
+    + Compute the equinoctial orbital elements $a$, $h$ #emph[(this is not angular momentum)], $k$, $p$ #emph[(this is not semilatus rectum)], $q$, $lambda$.
     <hwk:p01b>
 ] <hwk:p01>
 
-1. Answer
-
+// TODO: answer
++ Answer
 <hwk:s01a>
 
-2. Answer
-
+// TODO: answer
++ Answer
 <hwk:s01b>
 
 #pagebreak(weak: true)
 
-#prob(title: [Code #emph[(\# pts)]])[
-    Instructions
+#prob(title: "Curtis 4.4")[
+    At a given instant, the position $vbu(r)$ and velocity $vbu(v)$ of a satellite in the geocentric equatorial frame are:
+    $
+        vbu(r) & =          &           & -13000 vuu(K) &   space (unit("km")) \
+        vbu(v) & = 4 vuu(I) & +3 vuu(J) & -3 vuu(K)     & space (unit("km/s"))
+    $
+
+    + Find the classical orbital elements $e$, $a$, $i$, $Omega$, $omega$, $theta$.
+    <hwk:p02a>
+
+    + Compute the equinoctial orbital elements $a$, $h$ #emph[(this is not angular momentum)], $k$, $p$ #emph[(this is not semilatus rectum)], $q$, $lambda$.
+    <hwk:p02b>
 ] <hwk:p02>
 
-#figure(
-    image("../outputs/figures/s02.png", width: 65%),
-    caption: [Sine Wave on $x = [0 10]$]
-) <fig:s02>
+// TODO: answer
++ Answer
+<hwk:s02a>
 
-#raw(read("../outputs/text/s02.txt"), block: true) <code:s02>
+// TODO: answer
++ Answer
+<hwk:s02b>
 
-See the #link("https://github.com/vaisriv/<HW_ASSIGNMENT>/blob/main/src/index.py#L1")[Python code] for this problem.
+#pagebreak(weak: true)
+
+#prob(title: "Curtis 4.5")[
+    At time $t_0$ (relative to perigee passage) the position $vbu(r)$ and velocity $vbu(v)$ of a satellite in the geocentric equatorial frame are:
+    $
+        vbu(r) & = 6500 vuu(I) & -7500 vuu(J) & -2500 vuu(K) &   space (unit("km")) \
+        vbu(v) & = 4 vuu(I)    &    +3 vuu(J) & -3 vuu(K)    & space (unit("km/s"))
+    $
+
+    + Find the classical orbital elements $e$, $a$, $i$, $Omega$, $omega$, $theta$.
+    <hwk:p03a>
+
+    + Compute the equinoctial orbital elements $a$, $h$ #emph[(this is not angular momentum)], $k$, $p$ #emph[(this is not semilatus rectum)], $q$, $lambda$.
+    <hwk:p03b>
+] <hwk:p03>
+
+// TODO: answer
++ Answer
+<hwk:s03a>
+
+// TODO: answer
++ Answer
+<hwk:s03b>
+
+#pagebreak(weak: true)
+
+#prob(title: "Curtis 4.6")[
+    With respect to the geocentric equatorial frame, the position vector of a spacecraft is $vbu(r) = - 6000 vuu(I) - 1000 vuu(J) - 5000 vuu(K) space (unit("km"))$ and the orbit's eccentricity vector is $vbu(e) = 0.4 vuu(I) + 0.5 vuu(J) + 0.6 vuu(K)$. Calculate the true anomaly $theta$ if the satellite is approaching perigee.
+] <hwk:p04>
+
+// TODO: answer
++ Answer
+<hwk:s04>
+
+#pagebreak(weak: true)
+
+#prob(title: "Curtis 4.7")[
+    Given that, relative to the geocentric equatorial frame, $vbu(r) = - 6600 vuu(I) - 1300 vuu(J) - 5200 vuu(K) space (unit("km"))$, the eccentricity vector is $vbu(e) = - 0.4 vuu(I) - 0.5 vuu(J) - 0.6 vuu(K)$, and the satellite is flying toward perigee, calculate the inclination of the orbit.
+] <hwk:p05>
+
+// TODO: answer
++ Answer
+<hwk:s05>
+
+#pagebreak(weak: true)
+
+#prob(title: "")[
+    Find the equinoctial elements for the following orbits:
+
+    + Position and Velocity:
+        $
+            vbu(r) = mat(3698.3455; -34232.4473; 0) space (unit("km")), quad
+            vbu(v) = mat(2.1482; -1.4944; 0) space (unit("km/s"))
+        $
+    <hwk:p06a>
+
+    + Position and Velocity:
+        $
+            vbu(r) = mat(-21082.0848; 36515.242; 0) space (unit("km")), quad
+            vbu(v) = mat(-2.6627; -1.5373; 0) space (unit("km/s"))
+        $
+    <hwk:p06b>
+
+    + Position and Velocity:
+        $
+            vbu(r) = mat(-15843.4562; -2247.7766; 21200.4627) space (unit("km")), quad
+            vbu(v) = mat(1.4544; -3.5188; 0.7138) space (unit("km/s"))
+        $
+    <hwk:p06c>
+] <hwk:p06>
+
+// TODO: answer
++ Answer
+<hwk:s06a>
+
+// TODO: answer
++ Answer
+<hwk:s06b>
+
+// TODO: answer
++ Answer
+<hwk:s06c>
 
 #pagebreak(weak: true)
 

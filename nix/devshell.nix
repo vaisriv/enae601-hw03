@@ -1,8 +1,8 @@
 { pkgs, perSystem, ... }:
 perSystem.devshell.mkShell {
-    name = "<HW_ASSIGNMENT> devshell";
+    name = "enae601-hw03 devshell";
     motd = ''
-        {141}📚 <HW_ASSIGNMENT>{reset} devshell
+        {141}📚 enae601-hw03{reset} devshell
         $(type -p menu &>/dev/null && menu)
     '';
 
@@ -46,16 +46,13 @@ perSystem.devshell.mkShell {
 
     packages = with pkgs; [
         # python
-        # WARN: python3 is overriden to unstable as python3Packages.cartopy is broken on release-26.05
-        # https://github.com/NixOS/nixpkgs/issues/516636
-        (perSystem.nixpkgs-unstable.python3.withPackages (
+        (python3.withPackages (
             ps: with ps; [
                 # python packages here
                 pandas
                 matplotlib
                 numpy
                 scipy
-                cartopy
             ]
         ))
         uv
