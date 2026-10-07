@@ -324,7 +324,7 @@
 #pagebreak(weak: true)
 
 #prob(title: "Curtis 4.6")[
-    With respect to the geocentric equatorial frame, the position vector of a spacecraft is $vbu(r) = - 6000 vuu(I) - 1000 vuu(J) - 5000 vuu(K) space (unit("km"))$ and the orbit's eccentricity vector is $vbu(e) = 0.4 vuu(I) + 0.5 vuu(J) + 0.6 vuu(K)$. Calculate the true anomaly $theta$ if the satellite is approaching perigee.
+    With respect to the geocentric equatorial frame, the position vector of a spacecraft is $vbu(r) = - 6000 vuu(I) - 1000 vuu(J) - 5000 vuu(K) space (unit("km"))$ and the orbit's eccentricity vector is $vbu(e) = -0.4 vuu(I) + -0.5 vuu(J) + -0.6 vuu(K)$. Calculate the true anomaly $theta$ if the satellite is approaching perigee.
 ] <hwk:p04>
 
 The eccentricity vector points toward perigee, so:

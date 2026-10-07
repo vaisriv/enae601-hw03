@@ -302,7 +302,7 @@ def problem_04() -> None:
     """Curtis 4.6: choose the inbound branch of true anomaly."""
     heading("p04")
     r = np.array([-6000.0, -1000.0, -5000.0])
-    ev = np.array([0.4, 0.5, 0.6])
+    ev = np.array([-0.4, -0.5, -0.6])
     cosine = r @ ev / (np.linalg.norm(r) * np.linalg.norm(ev))
     principal = np.arccos(np.clip(cosine, -1.0, 1.0))
     theta = TAU - principal
