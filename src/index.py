@@ -45,26 +45,50 @@ def geometry(r: np.ndarray, v: np.ndarray) -> dict:
 
 
 def classical(g: dict, r: np.ndarray) -> dict:
-    """Classical elements for the noncircular, inclined ellipses in P1--P3."""
+    """Classical elements for noncircular, inclined ellipses and hyperbolas."""
     momentum, node, eccentricity = g["H"], g["N"], g["ev"]
     if np.linalg.norm(node) < 1e-12 or g["e"] < 1e-12:
         raise ValueError("Classical node/perigee angles are undefined.")
     normal = momentum / np.linalg.norm(momentum)
     theta = angle(eccentricity, r, normal)
-    anomaly = (
-        np.arctan2(np.sqrt(1.0 - g["e"] ** 2) * np.sin(theta), g["e"] + np.cos(theta))
-        % TAU
-    )
-    return {
+    elements = {
         "e": g["e"],
         "a": g["a"],
         "i": np.arctan2(np.linalg.norm(momentum[:2]), momentum[2]),
         "Omega": np.arctan2(node[1], node[0]) % TAU,
         "omega": angle(node, eccentricity, normal),
         "theta": theta,
-        "E": anomaly,
-        "M": (anomaly - g["e"] * np.sin(anomaly)) % TAU,
     }
+    if g["e"] < 1.0:
+        anomaly = (
+            np.arctan2(
+                np.sqrt(1.0 - g["e"] ** 2) * np.sin(theta), g["e"] + np.cos(theta)
+            )
+            % TAU
+        )
+        elements.update(E=anomaly, M=(anomaly - g["e"] * np.sin(anomaly)) % TAU)
+    elif g["e"] > 1.0:
+        signed_theta = np.arctan2(np.sin(theta), np.cos(theta))
+        anomaly = hyperbolic_anomaly(g["e"], signed_theta)
+        elements.update(
+            theta_signed=signed_theta,
+            F=anomaly,
+            M_h=g["e"] * np.sinh(anomaly) - anomaly,
+            varpi=(elements["Omega"] + elements["omega"]) % TAU,
+        )
+    else:
+        raise ValueError("Parabolic orbits require a different element set.")
+    return elements
+
+
+def hyperbolic_anomaly(e: float, theta: float) -> float:
+    """Signed hyperbolic anomaly F; inbound values are negative, never wrapped."""
+    denominator = 1.0 + e * np.cos(theta)
+    if e <= 1.0 or denominator <= 0.0:
+        raise ValueError(
+            "A true anomaly on the physical hyperbolic branch is required."
+        )
+    return np.arcsinh(np.sqrt(e * e - 1.0) * np.sin(theta) / denominator)
 
 
 def equinoctial_basis(p: float, q: float) -> tuple[np.ndarray, np.ndarray]:
@@ -76,32 +100,42 @@ def equinoctial_basis(p: float, q: float) -> tuple[np.ndarray, np.ndarray]:
 
 
 def equinoctial(g: dict, r: np.ndarray) -> dict:
-    """Direct conversion, including circular and equatorial ellipses.
+    """Direct conversion for ellipses, with a stated hyperbolic extension.
 
     h = e sin(Omega + omega), k = e cos(Omega + omega),
     p = tan(i/2) sin(Omega), q = tan(i/2) cos(Omega).
     L and F are true and eccentric longitude; lambda is mean longitude.
     beta = 1 / (1 + sqrt(1 - h^2 - k^2)).
+    For hyperbolas, lambda = varpi + M_h, with varpi = atan2(h, k)
+    in [0, 2 pi), M_h = e sinh(F) - F, and no wrapping of lambda.
+    This extends the mean-longitude definition, not the elliptic F/beta formulas.
     The posigrade convention is singular only at i = pi.
     """
     momentum = g["H"]
     denominator = np.linalg.norm(momentum) + momentum[2]
-    if denominator <= 1e-12 or not 0.0 <= g["e"] < 1.0:
-        raise ValueError("An ellipse with inclination below 180 deg is required.")
+    if denominator <= 1e-12 or g["e"] == 1.0:
+        raise ValueError(
+            "A nonparabolic orbit with inclination below 180 deg is required."
+        )
     p, q = momentum[0] / denominator, -momentum[1] / denominator
     f, b = equinoctial_basis(p, q)
     h, k = g["ev"] @ b, g["ev"] @ f
     longitude = np.arctan2(r @ b, r @ f) % TAU
-    beta = 1.0 / (1.0 + np.sqrt(1.0 - h * h - k * k))
-    eccentric_longitude = longitude + 2.0 * np.arctan2(
-        h * np.cos(longitude) - k * np.sin(longitude),
-        1.0 / beta + k * np.cos(longitude) + h * np.sin(longitude),
-    )
-    mean_longitude = (
-        eccentric_longitude
-        + h * np.cos(eccentric_longitude)
-        - k * np.sin(eccentric_longitude)
-    ) % TAU
+    if g["e"] < 1.0:
+        beta = 1.0 / (1.0 + np.sqrt(1.0 - h * h - k * k))
+        eccentric_longitude = longitude + 2.0 * np.arctan2(
+            h * np.cos(longitude) - k * np.sin(longitude),
+            1.0 / beta + k * np.cos(longitude) + h * np.sin(longitude),
+        )
+        mean_longitude = (
+            eccentric_longitude
+            + h * np.cos(eccentric_longitude)
+            - k * np.sin(eccentric_longitude)
+        ) % TAU
+    else:
+        varpi = np.arctan2(h, k) % TAU
+        anomaly = hyperbolic_anomaly(g["e"], longitude - varpi)
+        mean_longitude = varpi + g["e"] * np.sinh(anomaly) - anomaly
     return {
         "a": g["a"],
         "h": h,
@@ -114,9 +148,39 @@ def equinoctial(g: dict, r: np.ndarray) -> dict:
 
 
 def reconstruct(eq: dict) -> tuple[np.ndarray, np.ndarray]:
-    """Invert equinoctial elements using the eccentric-longitude equation."""
+    """Invert elliptic elements or the unwrapped hyperbolic extension."""
     a, h, k, p, q, longitude = (eq[key] for key in ("a", "h", "k", "p", "q", "lambda"))
     eccentricity = np.hypot(h, k)
+    if a < 0.0 and eccentricity > 1.0:
+        varpi = np.arctan2(h, k) % TAU
+        mean_anomaly = longitude - varpi
+        # e sinh(F) - F is odd and strictly increasing for e > 1.
+        bound = max(1.0, np.arcsinh(abs(mean_anomaly) / eccentricity) + 1.0)
+        while eccentricity * np.sinh(bound) - bound < abs(mean_anomaly):
+            bound *= 2.0
+        anomaly = brentq(
+            lambda f: eccentricity * np.sinh(f) - f - mean_anomaly,
+            -bound,
+            bound,
+            xtol=1e-14,
+        )
+        scale = -a
+        beta = np.sqrt(eccentricity**2 - 1.0)
+        position = scale * np.array(
+            [eccentricity - np.cosh(anomaly), beta * np.sinh(anomaly)]
+        )
+        rate = np.sqrt(MU_EARTH / scale**3) / (eccentricity * np.cosh(anomaly) - 1.0)
+        velocity = scale * rate * np.array([-np.sinh(anomaly), beta * np.cosh(anomaly)])
+        f, b = equinoctial_basis(p, q)
+        # Perigee and transverse directions, expressed in the equinoctial basis.
+        basis = np.column_stack(
+            ((k * f + h * b) / eccentricity, (-h * f + k * b) / eccentricity)
+        )
+        return basis @ position, basis @ velocity
+    if a <= 0.0 or eccentricity >= 1.0:
+        raise ValueError(
+            "Semimajor axis and eccentricity must describe a nonparabolic conic."
+        )
     anomaly = brentq(
         lambda f: f + h * np.cos(f) - k * np.sin(f) - longitude,
         longitude - eccentricity - 1e-12,
@@ -160,10 +224,21 @@ def verify(
         np.testing.assert_allclose(
             [eq[key] for key in ("h", "k", "p", "q")], expected, atol=1e-12
         )
-        delta = eq["lambda"] - varpi - coe["M"]
-        np.testing.assert_allclose(
-            [np.cos(delta), np.sin(delta)], [1.0, 0.0], atol=1e-12
-        )
+        if g["e"] < 1.0:
+            delta = eq["lambda"] - varpi - coe["M"]
+            np.testing.assert_allclose(
+                [np.cos(delta), np.sin(delta)], [1.0, 0.0], atol=1e-12
+            )
+        else:
+            np.testing.assert_allclose(
+                eq["lambda"], varpi % TAU + coe["M_h"], atol=1e-12
+            )
+            # Independent state-vector relation for the signed hyperbolic anomaly.
+            np.testing.assert_allclose(
+                np.sinh(coe["F"]),
+                (r @ v) / (g["e"] * np.sqrt(MU_EARTH * -g["a"])),
+                atol=1e-12,
+            )
     return [
         f"position reconstruction error = {np.linalg.norm(recovered_r - r):.3e} km",
         f"velocity reconstruction error = {np.linalg.norm(recovered_v - v):.3e} km/s",
@@ -172,9 +247,23 @@ def verify(
 
 def element_lines(elements: dict) -> list[str]:
     """Format numerical elements; the report reads these key/value lines."""
-    angles = {"i", "Omega", "omega", "theta", "E", "M", "lambda", "L"}
+    angles = {
+        "i",
+        "Omega",
+        "omega",
+        "theta",
+        "theta_signed",
+        "E",
+        "M",
+        "lambda",
+        "L",
+        "varpi",
+    }
     lines = []
     for key, value in elements.items():
+        # if key == "lambda" and elements["a"] < 0.0:
+        #     lines.append(f"lambda = {value:.10f} rad")
+        # elif key in angles:
         if key in angles:
             lines.append(f"{key} = {np.degrees(value):.6f} deg")
         elif key == "a":
@@ -269,7 +358,7 @@ def main() -> None:
     # p02 #
     #########
     heading("p02")
-    solve_state("02", [0, 0, -13000], [4, 3, -3])
+    solve_state("02", [0, 0, -13000], [4, 5, 6])
 
     #########
     # p03 #

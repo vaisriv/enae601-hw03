@@ -134,17 +134,17 @@
 
     Here $v_r=(vbu(r) dot vbu(v))/r=qty(result("01a", "vr"), "km/s")<0$, so the satellite is approaching perigee and $theta>qty(180, "degree")$.
 
-    #block(breakable: false)[
-        Thus, the classical orbital elements are:
-        $
-                e & = #result("01a", "e"), \
-                a & = qty(result("01a", "a"), "km"), \
-                i & = qty(result("01a", "i"), "degree"), \
-            Omega & = qty(result("01a", "Omega"), "degree"), \
-            omega & = qty(result("01a", "omega"), "degree"), \
-            theta & = qty(result("01a", "theta"), "degree") quad qed
-        $
-    ]
+    #colbreak(weak: true)
+
+    Thus, the classical orbital elements are:
+    $
+            e & = #result("01a", "e"), \
+            a & = qty(result("01a", "a"), "km"), \
+            i & = qty(result("01a", "i"), "degree"), \
+        Omega & = qty(result("01a", "Omega"), "degree"), \
+        omega & = qty(result("01a", "omega"), "degree"), \
+        theta & = qty(result("01a", "theta"), "degree") quad qed
+    $
 <hwk:s01a>
 
 + Use the equinoctial convention:
@@ -188,7 +188,7 @@
     At a given instant, the position $vbu(r)$ and velocity $vbu(v)$ of a satellite in the geocentric equatorial frame are:
     $
         vbu(r) & =          &           & -13000 vuu(K) &   space (unit("km")) \
-        vbu(v) & = 4 vuu(I) & +3 vuu(J) & -3 vuu(K)     & space (unit("km/s"))
+        vbu(v) & = 4 vuu(I) & +5 vuu(J) & +6 vuu(K)     & space (unit("km/s"))
     $
 
     + Find the classical orbital elements $e$, $a$, $i$, $Omega$, $omega$, $theta$.
@@ -200,17 +200,20 @@
 
 + Using the state-to-elements relations from #link(<hwk:s01a>)[Problem 1, Part A],
     $
-        vbu(H) & = vecrow(39000, -52000, 0) space (unit("km^2/s")), \
-        vbu(N) & = vecrow(52000, 39000, 0) space (unit("km^2/s")), \
-        vbu(e) & = vecrow(-0.3913697943, -0.2935273457, 0.1846462619), \
+        vbu(H) & = vecrow(65000, -52000, 0) space (unit("km^2/s")), \
+        vbu(N) & = vecrow(52000, 65000, 0) space (unit("km^2/s")), \
+        vbu(e) & = vecrow(0.7827395886, 0.9784244857, -0.3371801305), \
         cal(E) & = qty(result("02a", "energy"), "km^2/s^2").
     $
 
-    Since $H_z=0$, the orbit is polar: $i=qty(90, "degree")$.
+    The positive specific energy and $e>1$ identify a hyperbola, with signed semimajor axis $a=-mu/(2 cal(E))<0$.
 
-    Although $v_z<0$, the satellite is moving outward because $v_r=(vbu(r) dot vbu(v))/r=qty(3, "km/s")>0$, so $0<theta<qty(180, "degree")$.
+    Since $H_z=0$, the orbit is polar: $i=qty(90, "degree")$. Although $v_z>0$, the satellite is below the equatorial plane and moving inward:
+    $
+        v_r=(vbu(r) dot vbu(v))/r=qty(result("02a", "vr"), "km/s")<0.
+    $
 
-    Evaluating the oriented angles gives:
+    Thus, the signed true anomaly is negative. Evaluating the oriented angles and reporting $theta$ in $[0,2pi)$ gives:
     $
             e & = #result("02a", "e"), \
             a & = qty(result("02a", "a"), "km"), \
@@ -219,17 +222,35 @@
         omega & = qty(result("02a", "omega"), "degree"), \
         theta & = qty(result("02a", "theta"), "degree") quad qed
     $
+
+    Equivalently, $theta=qty(result("02a", "theta_signed"), "degree")$ on the physical hyperbolic branch, $-arccos(-1/e)<theta<arccos(-1/e)$, consistent with approach to perigee.
 <hwk:s02a>
 
-+ From the anomaly relations in #link(<hwk:s01b>)[Problem 1, Part B], the eccentric and mean anomalies are:
++ The definitions of $h,k,p,q$ in #link(<eqn:equinoctial>)[Problem 1, Part B] still describe the eccentricity vector and orbital plane. With $tan(i/2)=1$:
     $
-        E & = qty(result("02a", "E"), "degree"), \
-        M & = qty(result("02a", "M"), "degree").
+        p & = sin(Omega)=5/sqrt(41), \
+        q & = cos(Omega)=4/sqrt(41).
     $
 
-    With $tan(i/2)=1$, we have $p=sin(Omega)=0.6$ and $q=cos(Omega)=0.8$.
+    The elliptic eccentric anomaly $E$ and the formulas involving $sqrt(1-e^2)$ do not apply. Instead, use the signed hyperbolic eccentric anomaly $F_h$ and hyperbolic mean anomaly $M_h$:
+    $
+        F_h & = op("arsinh")((sqrt(e^2-1) sin(theta))/(1+e cos(theta))) \
+            & = #result("02a", "F"), \
+        M_h & = e sinh(F_h)-F_h=#result("02a", "M_h").
+    $
 
-    Substitution into #link(<eqn:equinoctial>)[the equinoctial definitions] gives:
+    These are dimensionless, unbounded quantities, meaning both are negative before perigee. In particular, $M_h=sqrt(mu/(-a)^3)(t-t_p)$, where $t_p$ is the time of perigee passage.
+
+    To retain the requested mean-longitude element, explicitly extend its definition to the hyperbola:
+    $
+        pi.alt & = (Omega+omega) mod 2pi \
+               & = qty(result("02a", "varpi"), "degree"), \
+        lambda & = pi.alt+M_h.
+    $
+
+    Here $pi.alt$ is fixed in $[0,2pi)$ and converted to radians before adding $M_h$. Neither $M_h$ nor $lambda$ is reduced $mod 2pi$, as doing so would lose the position along the nonperiodic trajectory. This is a hyperbolic extension of the equinoctial elements, so the elliptic eccentric-longitude equations used for the other problems are unfortunately inapplicable.
+
+    With this convention, the elements are:
     $
              a & = qty(result("02b", "a"), "km"), \
              h & = #result("02b", "h"), \
@@ -238,6 +259,8 @@
              q & = #result("02b", "q"), \
         lambda & = qty(result("02b", "lambda"), "degree") quad qed
     $
+
+    As a check, solving $e sinh(F_h)-F_h=lambda-pi.alt$ and reconstructing the inertial state recovers $vbu(r)=vecrow(0, 0, -13000) space unit("km")$ and $vbu(v)=vecrow(4, 5, 6) space unit("km/s")$ to numerical precision (an implementation of this can be seen in the #link("https://github.com/vaisriv/enae601-hw03/blob/main/src/index.py#L357")[Python code for this problem]).
 <hwk:s02b>
 
 #pagebreak(weak: true)
@@ -444,15 +467,13 @@ $
     $
 <hwk:s06a>
 
-+ #block(breakable: false)[
-        Again, $H_x=H_y=0$ and $H_z>0$, so $p=q=0$, $h=e_y$, and $k=e_x$.
++ Again, $H_x=H_y=0$ and $H_z>0$, so $p=q=0$, $h=e_y$, and $k=e_x$.
 
-        Computing directly from the given state gives:
-        $
-            e & = #result("06b", "e") \
-            L & = qty(result("06b", "L"), "degree").
-        $
-    ]
+    Computing directly from the given state gives:
+    $
+        e & = #result("06b", "e") \
+        L & = qty(result("06b", "L"), "degree").
+    $
 
     This orbit is nearly circular. Retaining the small eccentricity from the supplied rounded state, and using #link(<eqn:longitude>)[the longitude equations], gives:
     $
